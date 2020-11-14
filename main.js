@@ -8,6 +8,15 @@ const BORDER = 40;
 let GRID_W = CANVAS_W / (GRID_ROWS - 1);
 let GRID_H = CANVAS_H / (GRID_COLS - 1);
 
+function rotatePoint(p, angle, center = [0, 0]) {
+  const translatedP = [p[0] - center[0], p[1] - center[1]];
+  const newP = [
+    translatedP[0] * Math.cos(angle) - translatedP[1] * Math.sin(angle),
+    translatedP[0] * Math.sin(angle) + translatedP[1] * Math.cos(angle),
+  ];
+  return [newP[0] + center[0], newP[1] + center[1]];
+}
+
 function setup() {
   createCanvas(CANVAS_W + BORDER * 2, CANVAS_H + BORDER * 2);
 }
@@ -40,18 +49,40 @@ function drawLineGrid() {
   }
 }
 
-function configureGrid(
+function configGridToDrawCoord(
   grid_w = GRID_W,
   grid_h = GRID_H,
   offset_x = BORDER,
   offset_y = BORDER,
+  rotate = 0,
+  rotateCenter = [0, 0],
 ) {
   return (x, y) => {
-    return [x * grid_w + offset_x, y * grid_h + offset_y];
+    return rotatePoint(
+      [x * grid_w + offset_x, y * grid_h + offset_y],
+      rotate,
+      rotateCenter,
+    );
   };
 }
 
-const gridToDrawCoord = configureGrid();
+function drawHatchGrid(angle) {
+  strokeCap(ROUND);
+  strokeWeight(6);
+  stroke(0, 0, 255);
+  const gtdc = configGridToDrawCoord(GRID_W, GRID_H, BORDER, BORDER, angle, [
+    (CANVAS_W + BORDER * 2) / 2,
+    (CANVAS_H + BORDER * 2) / 2,
+  ]);
+  for (let i = 1; i < GRID_ROWS - 1; i++) {
+    line(...gtdc(0, i), ...gtdc(GRID_COLS - 1, i));
+    for (let j = 1; j < GRID_COLS - 1; j++) {
+      line(...gtdc(j, 0), ...gtdc(j, GRID_ROWS - 1));
+    }
+  }
+}
+
+const gridToDrawCoord = configGridToDrawCoord();
 
 const ccw_transform = (x, y) => {
   // bottom
@@ -125,7 +156,7 @@ const formFromTemplate = (formTemplate) => ({
   offset_x,
   offset_y,
 }) => {
-  const gtdc = configureGrid(grid_w, grid_h, offset_x, offset_y);
+  const gtdc = configGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
   fill(...(Array.isArray(fillColor) ? fillColor : [fillColor]));
   noStroke();
   beginShape();
@@ -294,10 +325,21 @@ const exercises = {
   },
 };
 
+const expansions = {
+  putnam: {
+    draw: () => {
+      background(255);
+      drawHatchGrid();
+      drawHatchGrid(frameCount / 100);
+    },
+  },
+};
+
 function draw() {
   //exercises['01.02.02'].draw();
   //exercises['01.02.05'].draw();
   //exercises['01.02.05a'].draw();
   //exercises['029'].draw();
-  exercises['030a'].draw();
+  //exercises['030a'].draw();
+  expansions['putnam'].draw();
 }
