@@ -17,6 +17,52 @@ function rotatePoint(p, angle, center = [0, 0]) {
   return [newP[0] + center[0], newP[1] + center[1]];
 }
 
+function intersect(p1, p2, p3, p4) {
+  // from https://discourse.processing.org/t/check-if-line-intersects-a-polygon/16978/8
+  uA =
+    ((p4[0] - p3[0]) * (p1[1] - p3[1]) - (p4[1] - p3[1]) * (p1[0] - p3[0])) /
+    ((p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1]));
+  uB =
+    ((p2[0] - p1[0]) * (p1[1] - p3[1]) - (p2[1] - p1[1]) * (p1[0] - p3[0])) /
+    ((p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1]));
+  if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+    secX = p1[0] + uA * (p2[0] - p1[0]);
+    secY = p1[1] + uA * (p2[1] - p1[1]);
+    return [secX, secY];
+  }
+}
+
+function contains(formTemplate, p) {
+  // from https://discourse.processing.org/t/check-if-line-intersects-a-polygon/16978/8
+  // returns false for tangent points
+  const [x, y] = p;
+  let isInside = false;
+
+  for (let i = 0; i < formTemplate.length; i++) {
+    v1 = formTemplate[(i + 1) % formTemplate.length];
+    v2 = formTemplate[i];
+
+    if (v2[1] > y != v1[1] > y) {
+      if (x < ((v1[0] - v2[0]) * (y - v2[1])) / (v1[1] - v2[1]) + v2[0]) {
+        isInside = !isInside;
+      }
+    }
+  }
+  return isInside;
+}
+
+function formIntersect(formTemplate, p1, p2) {
+  return formTemplate.reduce((agg, cur, i) => {
+    intersection = intersect(
+      cur,
+      formTemplate[(i + 1) % formTemplate.length],
+      p1,
+      p2,
+    );
+    return [...agg, intersection] || agg;
+  }, []);
+}
+
 function setup() {
   createCanvas(CANVAS_W + BORDER * 2, CANVAS_H + BORDER * 2);
 }
@@ -181,6 +227,23 @@ const randomSeptaForm = () => {
     [xset[0], 8],
     [0, lset[1]],
   ]);
+};
+
+const lineFormFromTemplate = (formTemplate) => ({
+  strokeColor,
+  grid_rows,
+  grid_cols,
+  grid_w,
+  grid_h,
+  offset_x,
+  offset_y,
+}) => {
+  const gtdc = configGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
+  const lines = formTemplate.map((p, i) => [
+    ...p,
+    formTemplate[i + (1 % formTemplate.length)],
+  ]);
+  stroke(...(Array.isArray(strokeColor) ? strokeColor : [strokeColor]));
 };
 
 // assume square grid
