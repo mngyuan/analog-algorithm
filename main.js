@@ -8,6 +8,15 @@ const BORDER = 40;
 let GRID_W = CANVAS_W / (GRID_ROWS - 1);
 let GRID_H = CANVAS_H / (GRID_COLS - 1);
 
+function uniqBy(a, key = JSON.stringify) {
+  // https://stackoverflow.com/questions/9229645/remove-duplicate-values-from-js-array
+  var seen = {};
+  return a.filter(function (item) {
+    var k = key(item);
+    return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+  });
+}
+
 function rotatePoint(p, angle, center = [0, 0]) {
   const translatedP = [p[0] - center[0], p[1] - center[1]];
   const newP = [
@@ -52,15 +61,20 @@ function contains(formTemplate, p) {
 }
 
 function formIntersect(formTemplate, p1, p2) {
-  return formTemplate.reduce((agg, cur, i) => {
+  const intersectionPoints = formTemplate.reduce((agg, cur, i) => {
     intersection = intersect(
       cur,
       formTemplate[(i + 1) % formTemplate.length],
       p1,
       p2,
     );
-    return [...agg, intersection] || agg;
+    return intersection ? [...agg, intersection] : agg;
   }, []);
+  // sometimes, the intersection occurs on a vertex, so it occurs on two lines
+  // at once. we don't want to return the duplicates in this case
+  return intersectionPoints.length > 2
+    ? uniqBy(intersectionPoints)
+    : intersectionPoints;
 }
 
 function setup() {
@@ -239,11 +253,28 @@ const lineFormFromTemplate = (formTemplate) => ({
   offset_y,
 }) => {
   const gtdc = configGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
-  const lines = formTemplate.map((p, i) => [
-    ...p,
-    formTemplate[i + (1 % formTemplate.length)],
-  ]);
+  const lines = [...Array(grid_cols).keys()].map((i) =>
+    formIntersect(formTemplate, [i, 0], [i, grid_rows]),
+  );
+  const endlines = [...Array(grid_cols).keys()].map((i) =>
+    formIntersect(formTemplate, [i + 1 / 3, 0], [i + 1 / 3, grid_rows]),
+  );
+  strokeWeight(1);
   stroke(...(Array.isArray(strokeColor) ? strokeColor : [strokeColor]));
+  lines.forEach((formLine, i) => {
+    if (endlines[i][0] && endlines[i][1]) {
+      fill(...(Array.isArray(strokeColor) ? strokeColor : [strokeColor]));
+      noStroke();
+      beginShape();
+      vertex(...gtdc(...formLine[0]));
+      vertex(...gtdc(...formLine[1]));
+      vertex(...gtdc(...endlines[i][1]));
+      vertex(...gtdc(...endlines[i][0]));
+      endShape(CLOSE);
+    } else {
+      line(...gtdc(...formLine[0]), ...gtdc(...formLine[1]));
+    }
+  });
 };
 
 // assume square grid
@@ -396,6 +427,30 @@ const expansions = {
       drawHatchGrid(frameCount / 100);
     },
   },
+  testLineForm: {
+    draw: () => {
+      const curForm = Math.floor(frameCount / 120) % forms.length;
+      background(255);
+      forms[curForm]({
+        fillColor: [0, 0, 255],
+        grid_rows: GRID_ROWS,
+        grid_cols: GRID_COLS,
+        grid_w: GRID_W,
+        grid_h: GRID_H,
+        offset_x: BORDER,
+        offset_y: BORDER,
+      });
+      lineFormFromTemplate(formTemplates[curForm])({
+        strokeColor: [255, 0, 0],
+        grid_rows: GRID_ROWS,
+        grid_cols: GRID_COLS,
+        grid_w: GRID_W,
+        grid_h: GRID_H,
+        offset_x: BORDER,
+        offset_y: BORDER,
+      });
+    },
+  },
 };
 
 function draw() {
@@ -404,5 +459,6 @@ function draw() {
   //exercises['01.02.05a'].draw();
   //exercises['029'].draw();
   //exercises['030a'].draw();
-  expansions['putnam'].draw();
+  //expansions['putnam'].draw();
+  expansions['testLineForm'].draw();
 }
