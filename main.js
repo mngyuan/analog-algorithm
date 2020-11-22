@@ -109,7 +109,7 @@ function drawLineGrid() {
   }
 }
 
-function configGridToDrawCoord(
+function genGridToDrawCoord(
   grid_w = GRID_W,
   grid_h = GRID_H,
   offset_x = BORDER,
@@ -130,7 +130,7 @@ function drawHatchGrid(angle) {
   strokeCap(ROUND);
   strokeWeight(6);
   stroke(0, 0, 255);
-  const gtdc = configGridToDrawCoord(GRID_W, GRID_H, BORDER, BORDER, angle, [
+  const gtdc = genGridToDrawCoord(GRID_W, GRID_H, BORDER, BORDER, angle, [
     (CANVAS_W + BORDER * 2) / 2,
     (CANVAS_H + BORDER * 2) / 2,
   ]);
@@ -142,9 +142,9 @@ function drawHatchGrid(angle) {
   }
 }
 
-const gridToDrawCoord = configGridToDrawCoord();
+const gridToDrawCoord = genGridToDrawCoord();
 
-const ccw_transform = (x, y) => {
+const ccwTransform = (x, y) => {
   // bottom
   if (y == GRID_ROWS - 1) {
     // bottom right corner
@@ -207,7 +207,7 @@ const formTemplates = [
   ],
 ];
 
-const formFromTemplate = (formTemplate) => ({
+const genDrawFormFromTemplate = (formTemplate) => ({
   fillColor,
   grid_rows,
   grid_cols,
@@ -216,7 +216,7 @@ const formFromTemplate = (formTemplate) => ({
   offset_x,
   offset_y,
 }) => {
-  const gtdc = configGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
+  const gtdc = genGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
   fill(...(Array.isArray(fillColor) ? fillColor : [fillColor]));
   noStroke();
   beginShape();
@@ -226,13 +226,13 @@ const formFromTemplate = (formTemplate) => ({
   endShape(CLOSE);
 };
 
-const forms = formTemplates.map(formFromTemplate);
+const drawForm = formTemplates.map(genDrawFormFromTemplate);
 
-const randomSeptaForm = () => {
+const genDrawRandomSeptaForm = () => {
   const xset = [randInt(4), 4 + randInt(4)];
   const lset = [randInt(4), 4 + randInt(4)];
   const rset = [randInt(4), 4 + randInt(4)];
-  return formFromTemplate([
+  return genDrawFormFromTemplate([
     [0, lset[0]],
     [randInt(8), 0],
     [8, rset[0]],
@@ -243,7 +243,7 @@ const randomSeptaForm = () => {
   ]);
 };
 
-const lineFormFromTemplate = (formTemplate) => ({
+const genDrawLineFormFromTemplate = (formTemplate) => ({
   strokeColor,
   grid_rows,
   grid_cols,
@@ -252,7 +252,7 @@ const lineFormFromTemplate = (formTemplate) => ({
   offset_x,
   offset_y,
 }) => {
-  const gtdc = configGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
+  const gtdc = genGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
   const lines = [...Array(grid_cols).keys()].map((i) =>
     formIntersect(formTemplate, [i, 0], [i, grid_rows]),
   );
@@ -296,9 +296,9 @@ const exercises = {
         vertex(...gridToDrawCoord(x3, y3));
         endShape(CLOSE);
 
-        [x1, y1] = ccw_transform(x1, y1);
-        [x2, y2] = ccw_transform(x2, y2);
-        [x3, y3] = ccw_transform(x3, y3);
+        [x1, y1] = ccwTransform(x1, y1);
+        [x2, y2] = ccwTransform(x2, y2);
+        [x3, y3] = ccwTransform(x3, y3);
 
         drawGrid();
       };
@@ -307,7 +307,7 @@ const exercises = {
   '01.02.05': {
     draw: function () {
       background(255);
-      forms[0]({fillColor: 0, grid_rows: 9, grid_cols: 9});
+      drawForm[0]({fillColor: 0, grid_rows: 9, grid_cols: 9});
       drawLineGrid();
     },
   },
@@ -353,21 +353,21 @@ const exercises = {
         vertex(...gridToDrawCoord(x5, y5));
         endShape(CLOSE);
         drawLineGrid();
-        [x1, y1] = ccw_transform(x1, y1);
-        [x2, y2] = ccw_transform(x2, y2);
-        [x3, y3] = ccw_transform(x3, y3);
-        [x4, y4] = ccw_transform(x4, y4);
-        [x5, y5] = ccw_transform(x5, y5);
+        [x1, y1] = ccwTransform(x1, y1);
+        [x2, y2] = ccwTransform(x2, y2);
+        [x3, y3] = ccwTransform(x3, y3);
+        [x4, y4] = ccwTransform(x4, y4);
+        [x5, y5] = ccwTransform(x5, y5);
       };
     })(),
   },
   '030': {
     designation: '01.02.05 isolated forms',
     draw: (() => {
-      form2 = randomSeptaForm();
+      form2 = genDrawRandomSeptaForm();
       return () => {
         background(255);
-        forms[1]({
+        drawForm[1]({
           fillColor: [255, 0, 0],
           grid_rows: 9,
           grid_cols: 9,
@@ -388,14 +388,14 @@ const exercises = {
   '030a': {
     designation: '01.02.05 isolated forms',
     draw: (() => {
-      generatedForms = Array(4).fill(0).map(randomSeptaForm);
+      generatedDrawForm = Array(4).fill(0).map(genDrawRandomSeptaForm);
       return () => {
         GRID_COLS = 11;
         GRID_ROWS = 11;
         GRID_W = CANVAS_W / (GRID_ROWS - 1);
         GRID_H = CANVAS_H / (GRID_COLS - 1);
         background(255);
-        forms[1]({
+        drawForm[1]({
           fillColor: [255, 0, 0],
           grid_rows: 9,
           grid_cols: 9,
@@ -404,7 +404,7 @@ const exercises = {
           offset_y: BORDER + GRID_H * 4,
         });
         for (let i = 1; i < 5; i++) {
-          generatedForms[i - 1]({
+          generatedDrawForm[i - 1]({
             fillColor: 0,
             grid_rows: 9,
             grid_cols: 9,
@@ -429,10 +429,10 @@ const expansions = {
   },
   testLineForm: {
     draw: () => {
-      const curForm = Math.floor(frameCount / 120) % forms.length;
-      background(255);
-      forms[curForm]({
-        fillColor: [0, 0, 255],
+      const curForm = Math.floor(frameCount / 120) % drawForm.length;
+      background(0);
+      drawForm[curForm]({
+        fillColor: 10,
         grid_rows: GRID_ROWS,
         grid_cols: GRID_COLS,
         grid_w: GRID_W,
@@ -440,8 +440,8 @@ const expansions = {
         offset_x: BORDER,
         offset_y: BORDER,
       });
-      lineFormFromTemplate(formTemplates[curForm])({
-        strokeColor: [255, 0, 0],
+      genDrawLineFormFromTemplate(formTemplates[curForm])({
+        strokeColor: [0, 0, 255],
         grid_rows: GRID_ROWS,
         grid_cols: GRID_COLS,
         grid_w: GRID_W,
@@ -449,6 +449,7 @@ const expansions = {
         offset_x: BORDER,
         offset_y: BORDER,
       });
+      drawLineGrid();
     },
   },
 };
