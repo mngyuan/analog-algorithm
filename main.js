@@ -90,11 +90,11 @@ function drawGrid() {
   }
 }
 
-function drawLineGrid() {
+function drawLineGrid(color = [255, 0, 0]) {
   // in this drawing of the grid, we actually care about the CELLS we're forming,
   // ie 9 grid ticks create 8 cells, so be mindful of this in calculation and use
   // GRID_COLS - 1
-  stroke(255, 0, 0);
+  stroke(...(Array.isArray(color) ? color : [color]));
   for (let i = 0; i < GRID_ROWS; i++) {
     line(...gridToDrawCoord(0, i), ...gridToDrawCoord(GRID_COLS - 1, i));
     for (let j = 0; j < GRID_COLS; j++) {
@@ -251,18 +251,33 @@ const genDrawLineFormFromTemplate = (formTemplate) => ({
   grid_h,
   offset_x,
   offset_y,
+  divisor,
+  width,
+  offset = 0,
 }) => {
   const gtdc = genGridToDrawCoord(grid_w, grid_h, offset_x, offset_y);
-  const lines = [...Array(grid_cols).keys()].map((i) =>
-    formIntersect(formTemplate, [i, 0], [i, grid_rows]),
-  );
-  const endlines = [...Array(grid_cols).keys()].map((i) =>
-    formIntersect(formTemplate, [i + 1 / 3, 0], [i + 1 / 3, grid_rows]),
-  );
+  const lines = [...Array(grid_cols * divisor).keys()]
+    .map((i) =>
+      formIntersect(
+        formTemplate,
+        [i / divisor + offset, 0],
+        [i / divisor + offset, grid_rows],
+      ),
+    )
+    .filter((line) => line.length > 0);
+  const endlines = [...Array(grid_cols * divisor).keys()]
+    .map((i) =>
+      formIntersect(
+        formTemplate,
+        [i / divisor + width + offset, 0],
+        [i / divisor + width + offset, grid_rows],
+      ),
+    )
+    .filter((line) => line.length > 0);
   strokeWeight(1);
   stroke(...(Array.isArray(strokeColor) ? strokeColor : [strokeColor]));
   lines.forEach((formLine, i) => {
-    if (endlines[i][0] && endlines[i][1]) {
+    if (endlines[i] && endlines[i][0] && endlines[i][1]) {
       fill(...(Array.isArray(strokeColor) ? strokeColor : [strokeColor]));
       noStroke();
       beginShape();
@@ -431,25 +446,32 @@ const expansions = {
     draw: () => {
       const curForm = Math.floor(frameCount / 120) % drawForm.length;
       background(0);
-      drawForm[curForm]({
-        fillColor: 10,
-        grid_rows: GRID_ROWS,
-        grid_cols: GRID_COLS,
-        grid_w: GRID_W,
-        grid_h: GRID_H,
-        offset_x: BORDER,
-        offset_y: BORDER,
-      });
       genDrawLineFormFromTemplate(formTemplates[curForm])({
-        strokeColor: [0, 0, 255],
+        strokeColor: [255, 0, 0],
         grid_rows: GRID_ROWS,
         grid_cols: GRID_COLS,
         grid_w: GRID_W,
         grid_h: GRID_H,
         offset_x: BORDER,
         offset_y: BORDER,
+        divisor: 10,
+        width: 1 / 20,
       });
-      drawLineGrid();
+      genDrawLineFormFromTemplate(
+        formTemplates[(curForm + 1) % drawForm.length],
+      )({
+        strokeColor: [255, 0, 0],
+        grid_rows: GRID_ROWS,
+        grid_cols: GRID_COLS,
+        grid_w: GRID_W,
+        grid_h: GRID_H,
+        offset_x: BORDER,
+        offset_y: BORDER,
+        divisor: 10,
+        width: 1 / 20,
+        offset: 1 / 20,
+      });
+      drawLineGrid(255);
     },
   },
 };
