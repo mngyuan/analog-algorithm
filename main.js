@@ -474,6 +474,34 @@ const expansions = {
       drawLineGrid(255);
     },
   },
+  tunnelSlinky: {
+    draw: () => {
+      const center = [(CANVAS_W + BORDER * 2) / 2, (CANVAS_H + BORDER * 2) / 2];
+
+      rectMode(CENTER);
+      background(0);
+      noFill();
+      strokeWeight(2);
+      stroke(255, 0, 0);
+      for (let i = 0; i < 15; i++) {
+        square(
+          ...center,
+          80 +
+            ((6 + Math.sin(frameCount / 10)) / 8) ** i * 200 +
+            Math.sin(frameCount / 10) * 80,
+        );
+      }
+      stroke(0, 0, 255);
+      for (let i = 0; i < 15; i++) {
+        square(
+          ...center,
+          90 +
+            ((6 + Math.sin(frameCount / 10)) / 8) ** i * 200 +
+            Math.sin(frameCount / 20) * 160,
+        );
+      }
+    },
+  },
 };
 
 function draw() {
@@ -483,5 +511,6 @@ function draw() {
   //exercises['029'].draw();
   //exercises['030a'].draw();
   //expansions['putnam'].draw();
-  expansions['testLineForm'].draw();
+  //expansions['testLineForm'].draw();
+  expansions['tunnelSlinky'].draw();
 }
