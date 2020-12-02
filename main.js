@@ -144,38 +144,38 @@ function drawHatchGrid(angle) {
 
 const gridToDrawCoord = genGridToDrawCoord();
 
-const ccwTransform = (x, y) => {
+const ccwTransform = (x, y, increment = INCREMENT) => {
   // bottom
   if (y == GRID_ROWS - 1) {
     // bottom right corner
     if (x == GRID_COLS - 1) {
-      return [x, Math.max(0, y - INCREMENT)];
+      return [x, Math.max(0, y - increment)];
     }
-    return [Math.min(x + INCREMENT, GRID_COLS - 1), y];
+    return [Math.min(x + increment, GRID_COLS - 1), y];
   }
   // right
   if (x == GRID_COLS - 1) {
     // top right corner
     if (y == 0) {
-      return [Math.max(0, x - INCREMENT), y];
+      return [Math.max(0, x - increment), y];
     }
-    return [x, Math.max(0, y - INCREMENT)];
+    return [x, Math.max(0, y - increment)];
   }
   if (y == 0) {
     // top left corner
     if (x == 0) {
-      return [x, Math.min(y + INCREMENT, GRID_ROWS - 1)];
+      return [x, Math.min(y + increment, GRID_ROWS - 1)];
     }
     // top
-    return [Math.max(0, x - INCREMENT), y];
+    return [Math.max(0, x - increment), y];
   }
   // left
   if (x == 0) {
     // bottom left corner
     if (y == GRID_ROWS - 1) {
-      return [Math.min(x + INCREMENT, GRID_COLS - 1), y];
+      return [Math.min(x + increment, GRID_COLS - 1), y];
     }
-    return [x, Math.min(y + INCREMENT, GRID_ROWS - 1)];
+    return [x, Math.min(y + increment, GRID_ROWS - 1)];
   }
 };
 
@@ -502,6 +502,99 @@ const expansions = {
       }
     },
   },
+  noodles0: {
+    draw: () => {
+      const LINES = 9;
+      const SPEED_DIVISOR = 30;
+      background(255);
+      strokeWeight(1);
+      drawLineGrid(0);
+      for (let i = 0; i < LINES; i++) {
+        const controlPoint = [
+          gridToDrawCoord(
+            (Math.cos(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_COLS - 1)) /
+              2 +
+              (GRID_COLS - 1) / 4,
+            (Math.sin(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_ROWS - 1)) /
+              4 +
+              (GRID_ROWS - 1) / 2,
+          ),
+          gridToDrawCoord(
+            GRID_COLS - 2,
+            (Math.sin(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_ROWS - 1)) /
+              4 +
+              (GRID_ROWS - 1) / 2,
+          ),
+          gridToDrawCoord(
+            (Math.cos(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_COLS - 1)) /
+              2 +
+              ((GRID_COLS - 1) / 4) * 3,
+            (Math.sin(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_ROWS - 1)) /
+              4 +
+              (GRID_ROWS - 1) / 2,
+          ),
+          gridToDrawCoord(
+            1,
+            (Math.sin(frameCount / SPEED_DIVISOR + (i * 2 * Math.PI) / LINES) *
+              (GRID_ROWS - 1)) /
+              4 +
+              (GRID_ROWS - 1) / 2,
+          ),
+        ];
+        noFill();
+        stroke('#00A4FD');
+        strokeWeight(10);
+        bezier(
+          ...gridToDrawCoord(0, (GRID_ROWS / LINES) * i),
+          ...controlPoint[0],
+          ...controlPoint[1],
+          ...gridToDrawCoord(GRID_COLS - 1, (GRID_ROWS - 1) / 2),
+        );
+        stroke('#00D27B');
+        bezier(
+          ...gridToDrawCoord(GRID_COLS - 1, (GRID_ROWS / LINES) * i),
+          ...controlPoint[2],
+          ...controlPoint[3],
+          ...gridToDrawCoord(0, (GRID_ROWS - 1) / 2),
+        );
+        //stroke(255, 0, 0);
+        //point(...controlPoint[2]);
+        //point(...controlPoint[3]);
+      }
+    },
+  },
+  noodles1: {
+    draw: (() => {
+      const transform = (x, y) => {
+        return gridToDrawCoord(x, y);
+      };
+      return () => {
+        background(255);
+        strokeWeight(1);
+        drawLineGrid(0);
+        noFill();
+        stroke('#00A4FD');
+        strokeWeight(10);
+        for (let i = 0; i < GRID_ROWS; i++) {
+          line(...transform(0, i), ...transform(i, GRID_ROWS - 1));
+          line(
+            ...transform(i, GRID_ROWS - 1),
+            ...transform(GRID_COLS - 1, GRID_ROWS - 1 - i),
+          );
+          line(
+            ...transform(GRID_COLS - 1, GRID_ROWS - 1 - i),
+            ...transform(GRID_COLS - 1 - i, 0),
+          );
+          line(...transform(GRID_COLS - 1 - i, 0), ...transform(0, i));
+        }
+      };
+    })(),
+  },
 };
 
 function draw() {
@@ -512,5 +605,6 @@ function draw() {
   //exercises['030a'].draw();
   //expansions['putnam'].draw();
   //expansions['testLineForm'].draw();
+  //expansions['noodles1'].draw();
   expansions['tunnelSlinky'].draw();
 }
