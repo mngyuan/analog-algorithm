@@ -5,6 +5,8 @@ let GRID_COLS = 9;
 const CANVAS_W = 400;
 const CANVAS_H = 400;
 const BORDER = 40;
+const CANVAS_W_TRUE = CANVAS_W + 2 * BORDER;
+const CANVAS_H_TRUE = CANVAS_H + 2 * BORDER;
 let GRID_W = CANVAS_W / (GRID_ROWS - 1);
 let GRID_H = CANVAS_H / (GRID_COLS - 1);
 
@@ -221,6 +223,7 @@ const genDrawFormFromTemplate = (formTemplate) => ({
   noStroke();
   beginShape();
   formTemplate.forEach(([x, y]) => {
+    console.log(...gtdc((x * (grid_cols - 1)) / 8, (y * (grid_rows - 1)) / 8));
     vertex(...gtdc((x * (grid_cols - 1)) / 8, (y * (grid_rows - 1)) / 8));
   });
   endShape(CLOSE);
@@ -597,6 +600,47 @@ const expansions = {
   },
 };
 
+const imDrawings = {
+  '09-22': {
+    draw: () => {
+      background(03, 24, 94);
+      noFill();
+      stroke('#A4A400');
+      strokeWeight(1);
+      line(
+        0.4 * CANVAS_W_TRUE,
+        CANVAS_H_TRUE,
+        CANVAS_W_TRUE,
+        0.4 * CANVAS_H_TRUE,
+      );
+      const p1 = [0.2 * CANVAS_W_TRUE, CANVAS_H_TRUE];
+      const p2 = [0.6 * CANVAS_W_TRUE, 0.55 * CANVAS_H_TRUE];
+      const p3 = [0.75 * CANVAS_W_TRUE, 0.15 * CANVAS_H_TRUE];
+      const p4 = [0.9 * CANVAS_W_TRUE, 0.1 * CANVAS_H_TRUE];
+      const p5 = [CANVAS_W_TRUE, 0.2 * CANVAS_H_TRUE];
+      const p6 = [CANVAS_W_TRUE, CANVAS_H_TRUE];
+      genDrawFormFromTemplate([p1, p2, p3, p4, p5, p6])({
+        //genDrawRandomSeptaForm()({
+        fillColor: [255, 255, 0],
+        grid_rows: 10,
+        grid_cols: 10,
+        grid_w: 1,
+        grid_h: 1,
+        offset_x: -40,
+        offset_y: -40,
+      });
+      strokeWeight(10);
+      stroke(255, 0, 0);
+      point(...p1);
+      point(...p2);
+      point(...p3);
+      point(...p4);
+      point(...p5);
+      point(...p6);
+    },
+  },
+};
+
 function draw() {
   //exercises['01.02.02'].draw();
   //exercises['01.02.05'].draw();
@@ -607,4 +651,5 @@ function draw() {
   //expansions['testLineForm'].draw();
   //expansions['noodles1'].draw();
   expansions['tunnelSlinky'].draw();
+  //imDrawings['09-22'].draw();
 }
